@@ -56,14 +56,19 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    # secrets нельзя использовать прямо в if, поэтому прокидываем их через env
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+      SSH_KEY: ${{ secrets.SSH_KEY }}
     steps:
       - name: Deploy to server via SSH
-        if: ${{ secrets.SSH_HOST != '' && secrets.SSH_USERNAME != '' && secrets.SSH_KEY != '' }}
+        if: ${{ env.SSH_HOST != '' && env.SSH_USERNAME != '' && env.SSH_KEY != '' }}
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ env.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
